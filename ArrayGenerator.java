@@ -34,7 +34,6 @@ public class ArrayGenerator {
 
     /**
      * Nearly sorted: mostly sorted, with a few random swaps.
-     * This is nice to discuss in your analysis.
      */
     public int[] nearlySortedArray(int n, int maxValue, int swaps) {
         int[] arr = sortedArray(n, maxValue);

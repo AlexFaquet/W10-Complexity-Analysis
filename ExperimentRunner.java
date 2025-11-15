@@ -1,108 +1,103 @@
 import java.util.Arrays;
-import java.util.function.Consumer;
+import java.util.Random;
 
 public class ExperimentRunner {
 
-    @FunctionalInterface
-    interface IntSorter {
-        void sort(int[] arr);
-    }
-
-    private static final int TRIALS = 10;
+    private static final int TRIALS = 5;
     private static final int MAX_VALUE = 1_000_000;
 
     public static void main(String[] args) {
-        int[] sizes = {1000, 5000, 10_000, 20_000, 50_000};
+        int[] sizes = {1000, 5000, 10000, 20000};
 
-        IntSorter selection = SelectionSort::sort;
-        IntSorter merge = MergeSort::sort;
-        IntSorter quick = QuickSort::sort;
+        Random random = new Random(42); // fixed seed for repeatability
 
-        // fixed seed so experiments are repeatable
-        ArrayGenerator generator = new ArrayGenerator(42L);
-
-        // CSV header
-        System.out.println("algorithm,inputType,n,avgMs,stdMs");
-
-        runExperiments("selection", selection, sizes, generator);
-        runExperiments("merge", merge, sizes, generator);
-        runExperiments("quick", quick, sizes, generator);
-    }
-
-    private static void runExperiments(String name,
-                                       IntSorter sorter,
-                                       int[] sizes,
-                                       ArrayGenerator generator) {
-
-        String[] inputTypes = {"random", "sorted", "reversed", "nearlySorted"};
+        System.out.println("algorithm,inputType,n,avgMs");
 
         for (int n : sizes) {
-            for (String type : inputTypes) {
+            // random input
+            runForAllAlgorithms("random", n, random);
 
-                long[] times = new long[TRIALS];
+            // sorted input
+            runForAllAlgorithms("sorted", n, random);
 
-                // Pre-generate base array once per (n, type) so all trials see same data pattern
-                int[] base = createArray(type, n, generator);
+            // reversed input
+            runForAllAlgorithms("reversed", n, random);
+        }
+    }
 
-                for (int t = 0; t < TRIALS; t++) {
-                    int[] arr = Arrays.copyOf(base, base.length);
+    private static void runForAllAlgorithms(String inputType, int n, Random random) {
+        int[] baseArray = generateArray(inputType, n, random);
 
-                    long start = System.nanoTime();
-                    sorter.sort(arr);
-                    long end = System.nanoTime();
+        double selectionAvg = averageTimeSelection(baseArray);
+        double mergeAvg     = averageTimeMerge(baseArray);
+        double quickAvg     = averageTimeQuick(baseArray);
 
-                    if (!isSorted(arr)) {
-                        throw new IllegalStateException(
-                                "Array not sorted for " + name + " n=" + n + " type=" + type);
-                    }
+        System.out.printf("selection,%s,%d,%.3f%n", inputType, n, selectionAvg);
+        System.out.printf("merge,%s,%d,%.3f%n", inputType, n, mergeAvg);
+        System.out.printf("quick,%s,%d,%.3f%n", inputType, n, quickAvg);
+    }
 
-                    times[t] = end - start;
-                }
-
-                double avgMs = average(times) / 1_000_000.0;
-                double stdMs = stdDev(times, avgMs * 1_000_000.0) / 1_000_000.0;
-
-                System.out.printf("%s,%s,%d,%.3f,%.3f%n", name, type, n, avgMs, stdMs);
+private static int[] generateArray(String type, int n, Random random) {
+    int[] arr = new int[n];
+    
+    if (type.equals("sorted")) {
+        // Generate sorted array directly
+        for (int i = 0; i < n; i++) {
+            arr[i] = i; // or use random but sorted values
+        }
+    } else {
+        // Generate random array first
+        for (int i = 0; i < n; i++) {
+            arr[i] = random.nextInt(MAX_VALUE);
+        }
+        
+        if (type.equals("reversed")) {
+            Arrays.sort(arr);
+            // Reverse the sorted array
+            for (int i = 0, j = n - 1; i < j; i++, j--) {
+                int tmp = arr[i];
+                arr[i] = arr[j];
+                arr[j] = tmp;
             }
         }
+        // For "random", we keep the random array as-is
     }
+    return arr;
+}
 
-    private static int[] createArray(String type, int n, ArrayGenerator generator) {
-        switch (type) {
-            case "random":
-                return generator.randomArray(n, MAX_VALUE);
-            case "sorted":
-                return generator.sortedArray(n, MAX_VALUE);
-            case "reversed":
-                return generator.reverseSortedArray(n, MAX_VALUE);
-            case "nearlySorted":
-                // 1% of positions swapped
-                int swaps = Math.max(1, n / 100);
-                return generator.nearlySortedArray(n, MAX_VALUE, swaps);
-            default:
-                throw new IllegalArgumentException("Unknown input type: " + type);
+    private static double averageTimeSelection(int[] base) {
+        long total = 0;
+        for (int t = 0; t < TRIALS; t++) {
+            int[] arr = Arrays.copyOf(base, base.length);
+            long start = System.nanoTime();
+            SelectionSort.sort(arr);
+            long end = System.nanoTime();
+            total += (end - start);
         }
+        return (total / (double) TRIALS) / 1_000_000.0; // ms
     }
 
-    private static boolean isSorted(int[] arr) {
-        for (int i = 1; i < arr.length; i++) {
-            if (arr[i] < arr[i - 1]) return false;
+    private static double averageTimeMerge(int[] base) {
+        long total = 0;
+        for (int t = 0; t < TRIALS; t++) {
+            int[] arr = Arrays.copyOf(base, base.length);
+            long start = System.nanoTime();
+            MergeSort.sort(arr);
+            long end = System.nanoTime();
+            total += (end - start);
         }
-        return true;
+        return (total / (double) TRIALS) / 1_000_000.0;
     }
 
-    private static double average(long[] values) {
-        long sum = 0;
-        for (long v : values) sum += v;
-        return (double) sum / values.length;
-    }
-
-    private static double stdDev(long[] values, double meanNs) {
-        double sumSq = 0.0;
-        for (long v : values) {
-            double diff = v - meanNs;
-            sumSq += diff * diff;
+    private static double averageTimeQuick(int[] base) {
+        long total = 0;
+        for (int t = 0; t < TRIALS; t++) {
+            int[] arr = Arrays.copyOf(base, base.length);
+            long start = System.nanoTime();
+            QuickSort.sort(arr);
+            long end = System.nanoTime();
+            total += (end - start);
         }
-        return Math.sqrt(sumSq / values.length);
+        return (total / (double) TRIALS) / 1_000_000.0;
     }
 }

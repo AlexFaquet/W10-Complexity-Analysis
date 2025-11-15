@@ -1,68 +1,74 @@
 public class QuickSort {
 
     /**
-     * Public entry point.
-     * Sorts the array in-place using quicksort with a fixed pivot.
+     * Public method to sort an array using Quicksort.
+     * We use the last element as the pivot (fixed pivot), because the
+     * practical asks us to observe worst-case behaviour on sorted data.
      */
     public static void sort(int[] arr) {
-        if (arr == null || arr.length <= 1) {
-            return; // nothing to do
-        }
         quicksort(arr, 0, arr.length - 1);
     }
 
-private static void quicksort(int[] arr, int low, int high) {
-    // Add protection against very unbalanced partitions
-    if (high - low + 1 <= 10) {
-        quicksort(arr, low, high);
-        return;
-    }
-    
-    if (low >= high) {
-        return;
-    }
+    /**
+     * Recursively sorts the subarray arr[low..high]
+     */
+    private static void quicksort(int[] arr, int low, int high) {
+        // Base case: a subarray of size 0 or 1 is already sorted
+        if (low >= high) {
+            return;
+        }
 
-    int pivotIndex = partition(arr, low, high);
-    quicksort(arr, low, pivotIndex - 1);
-    quicksort(arr, pivotIndex + 1, high);
-}
+        // Partition the array around the pivot
+        int pivotIndex = partition(arr, low, high);
+
+        // Recursively sort left side and right side
+        quicksort(arr, low, pivotIndex - 1);
+        quicksort(arr, pivotIndex + 1, high);
+    }
 
     /**
-     * Partitions arr[low..high] around a fixed pivot (the element at 'low').
-     * Returns the final index of the pivot.
+     * Partition the subarray arr[low..high] around a pivot.
+     * We choose the last element arr[high] as the pivot.
+     *
+     * After partitioning:
+     * - all elements <= pivot will be on the left side
+     * - all elements > pivot will be on the right side
+     * - the pivot will be in its final sorted position
+     *
+     * @return the final index of the pivot
      */
     private static int partition(int[] arr, int low, int high) {
-    // Fixed pivot: first element
-    int pivot = arr[low];
-    int i = low + 1; // index of first element > pivot
-    
-    for (int j = low + 1; j <= high; j++) {
-        if (arr[j] <= pivot) {
-            swap(arr, i, j);
-            i++;
-        }
-    }
-    
-    // Place pivot in correct position
-    swap(arr, low, i - 1);
-    return i - 1;
-}
+        int pivot = arr[high];     // pivot = last element
+        int i = low - 1;           // marks end of "elements <= pivot"
 
-    // Utility: swap two positions in the array
+        // Move through arr[low..high-1]
+        for (int j = low; j < high; j++) {
+            // If element is <= pivot, move it into the "small" section
+            if (arr[j] <= pivot) {
+                i++;
+                swap(arr, i, j);
+            }
+        }
+
+        // Finally, put the pivot just after the last "small" element
+        swap(arr, i + 1, high);
+
+        return i + 1;              // pivot's new index
+    }
+
+    /**
+     * Swap helper method
+     */
     private static void swap(int[] arr, int a, int b) {
-        if (a == b) return;
-        int tmp = arr[a];
+        int temp = arr[a];
         arr[a] = arr[b];
-        arr[b] = tmp;
+        arr[b] = temp;
     }
 
-    // Small test harness if you want to test this file alone:
+    // Optional: small main to test correctness quickly
     public static void main(String[] args) {
-        int[] arr = {5, 1, 9, 3, 7, 2, 8};
+        int[] arr = {5, 3, 8, 1, 2, 7};
         QuickSort.sort(arr);
-        for (int x : arr) {
-            System.out.print(x + " ");
-        }
-        System.out.println();
+        for (int x : arr) System.out.print(x + " ");
     }
 }

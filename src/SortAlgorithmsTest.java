@@ -1,22 +1,22 @@
-import static org.junit.Assert.assertArrayEquals;
+package src;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
 import java.util.Arrays;
 import java.util.Random;
 
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
 
 /**
- * JUnit tests for the three sorting algorithms:
+ * JUnit 5 tests for the three sorting algorithms:
  * SelectionSort, MergeSort, QuickSort.
  *
- * The goal here is correctness, not performance: for each test input
- * we compare the algorithm's output with Java's built-in Arrays.sort.
+ * The goal is to check correctness by comparing against Arrays.sort.
  */
 public class SortAlgorithmsTest {
 
     // ---------- Helper methods ----------
 
-    /** Run SelectionSort on a copy of original and check it matches Arrays.sort. */
     private void assertSelectionSortCorrect(int[] original) {
         int[] expected = Arrays.copyOf(original, original.length);
         Arrays.sort(expected);
@@ -24,11 +24,10 @@ public class SortAlgorithmsTest {
         int[] actual = Arrays.copyOf(original, original.length);
         SelectionSort.sort(actual);
 
-        assertArrayEquals("SelectionSort failed on input " + Arrays.toString(original),
-                expected, actual);
+        assertArrayEquals(expected, actual,
+                "SelectionSort failed on input " + Arrays.toString(original));
     }
 
-    /** Run MergeSort on a copy of original and check it matches Arrays.sort. */
     private void assertMergeSortCorrect(int[] original) {
         int[] expected = Arrays.copyOf(original, original.length);
         Arrays.sort(expected);
@@ -36,11 +35,10 @@ public class SortAlgorithmsTest {
         int[] actual = Arrays.copyOf(original, original.length);
         MergeSort.sort(actual);
 
-        assertArrayEquals("MergeSort failed on input " + Arrays.toString(original),
-                expected, actual);
+        assertArrayEquals(expected, actual,
+                "MergeSort failed on input " + Arrays.toString(original));
     }
 
-    /** Run QuickSort on a copy of original and check it matches Arrays.sort. */
     private void assertQuickSortCorrect(int[] original) {
         int[] expected = Arrays.copyOf(original, original.length);
         Arrays.sort(expected);
@@ -48,11 +46,10 @@ public class SortAlgorithmsTest {
         int[] actual = Arrays.copyOf(original, original.length);
         QuickSort.sort(actual);
 
-        assertArrayEquals("QuickSort failed on input " + Arrays.toString(original),
-                expected, actual);
+        assertArrayEquals(expected, actual,
+                "QuickSort failed on input " + Arrays.toString(original));
     }
 
-    /** Convenience: check all three algorithms on the same input. */
     private void assertAllAlgorithmsCorrect(int[] original) {
         assertSelectionSortCorrect(original);
         assertMergeSortCorrect(original);
@@ -99,10 +96,10 @@ public class SortAlgorithmsTest {
 
     @Test
     public void testRandomLargerArray() {
-        Random random = new Random(42); // fixed seed for repeatability
+        Random random = new Random(42);
         int[] arr = new int[1000];
         for (int i = 0; i < arr.length; i++) {
-            arr[i] = random.nextInt(100000) - 50000; // allow negatives too
+            arr[i] = random.nextInt(100000) - 50000;
         }
         assertAllAlgorithmsCorrect(arr);
     }

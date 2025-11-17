@@ -1,3 +1,5 @@
+package src;
+
 import java.util.Arrays;
 import java.util.Random;
 
@@ -8,13 +10,13 @@ public class ExperimentRunner {
 
     public static void main(String[] args) {
         int[] sizes = {1000, 3000, 6000, 9000, 12000, 15000};
-        String[] inputTypes = {"random", "sorted", "reversed"};
+        String[] inputTypes = {"random", "sorted", "reversed", "nearlySorted"};
 
         // Fixed seed so experiments are repeatable
         Random random = new Random(42);
 
         // Create CSV writer
-        CSVWriter csv = new CSVWriter("results.csv");
+        CSVWriter csv = new CSVWriter("results/results.csv");
 
         for (int n : sizes) {
             for (String inputType : inputTypes) {
@@ -45,11 +47,12 @@ public class ExperimentRunner {
      * - "random": shuffled random integers
      * - "sorted": ascending order
      * - "reversed": descending order
+     * - "nearlySorted": start sorted, then do a small number of random swaps
      */
     private static int[] generateArray(int n, String type, Random random) {
         int[] arr = new int[n];
 
-        // start with sorted values
+        // start with random values, then sort to get a base "sorted" array
         for (int i = 0; i < n; i++) {
             arr[i] = random.nextInt(MAX_VALUE);
         }
@@ -57,6 +60,7 @@ public class ExperimentRunner {
 
         if (type.equals("sorted")) {
             return arr;
+
         } else if (type.equals("reversed")) {
             // reverse the sorted array
             for (int i = 0, j = n - 1; i < j; i++, j--) {
@@ -65,6 +69,21 @@ public class ExperimentRunner {
                 arr[j] = tmp;
             }
             return arr;
+
+        } else if (type.equals("nearlySorted")) {
+            // start from sorted and perform a small number of random swaps
+            int[] nearly = Arrays.copyOf(arr, arr.length);
+            int swaps = Math.max(1, (int) (0.01 * n)); // 1% of n, at least 1 swap
+
+            for (int k = 0; k < swaps; k++) {
+                int i = random.nextInt(n);
+                int j = random.nextInt(n);
+                int tmp = nearly[i];
+                nearly[i] = nearly[j];
+                nearly[j] = tmp;
+            }
+            return nearly;
+
         } else if (type.equals("random")) {
             // shuffle to get random order (Fisher–Yates)
             for (int i = n - 1; i > 0; i--) {
@@ -74,6 +93,7 @@ public class ExperimentRunner {
                 arr[j] = tmp;
             }
             return arr;
+
         } else {
             throw new IllegalArgumentException("Unknown input type: " + type);
         }

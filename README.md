@@ -8,16 +8,33 @@ results/ CSV output and generated graphs
 lib/ JUnit jar file
 
 
+==== Bash Script Shortcuts ====
+
+1. To run the full experiment:
+
+-
+bash run_experiments.sh
+-
+
+ 2. To run the JUnit tests:
+
+-
+bash run_tests.sh
+-
+
 ==== Running the Java Experiment ====
 
 1. From the project root, compile all files:
 
-- javac src/*.java
-
+-
+javac -cp "lib/junit-platform-console-standalone-1.13.4.jar" -d out src/*.java
+-
 
 2. Run the experiment:
 
-- java src/ExperimentRunner.java
+-
+java src/ExperimentRunner.java
+-
 
 This writes the file:
 
@@ -32,7 +49,7 @@ The analysis script reads results.csv and produces several PNG graphs inside the
 
 1. Install the Python dependencies:
 
-- pip install pandas matplotlib
+pip install pandas matplotlib
 (On some systems use pip3 instead of pip).
 
 

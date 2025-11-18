@@ -67,7 +67,7 @@ public class QuickSort {
         arr[b] = temp;
     }
 
-    // Optional: small main to test correctness quickly
+    // Small main to test correctness quickly
     public static void main(String[] args) {
         int[] arr = {5, 3, 8, 1, 2, 7};
         QuickSort.sort(arr);

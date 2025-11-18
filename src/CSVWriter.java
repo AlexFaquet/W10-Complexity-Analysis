@@ -1,40 +1,60 @@
-
 package src;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 
 /**
- * Simple helper to write experiment results to a CSV file.
+ * Simple CSV writer for experiment results.
+ * Writes a header row on creation and appends subsequent rows.
  */
 public class CSVWriter {
 
-    private FileWriter writer;
+    private final PrintWriter out;
 
-    public CSVWriter(String filename) {
+    /**
+     * Creates a CSVWriter and opens the target file for writing.
+     * If the file already exists, it will be overwritten.
+     * The parent directory is created if it does not exist.
+     *
+     * @param path path to the CSV file (e.g. "results/results.csv")
+     */
+    public CSVWriter(String path) {
         try {
-            writer = new FileWriter(filename);
-            // Write CSV header
-            writer.write("algorithm,inputType,n,avgMs\n");
+            File file = new File(path);
+            File parent = file.getParentFile();
+            if (parent != null && !parent.exists()) {
+                parent.mkdirs();
+            }
+
+            this.out = new PrintWriter(new FileWriter(file, false));
+            // Header row: algorithm,inputType,n,ms,trial
+            out.println("algorithm,inputType,n,ms,trial");
+            out.flush();
         } catch (IOException e) {
-            throw new RuntimeException("Failed to open CSV file for writing", e);
+            throw new RuntimeException("Failed to open CSV file for writing: " + path, e);
         }
     }
 
-    public void writeRow(String algorithm, String inputType, int n, double avgMs) {
-        try {
-            String line = String.format("%s,%s,%d,%.3f\n", algorithm, inputType, n, avgMs);
-            writer.write(line);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to write row to CSV", e);
-        }
+    /**
+     * Writes a single result row.
+     *
+     * @param algorithm  algorithm name (e.g. "selection", "merge", "quick")
+     * @param inputType  input type (e.g. "random", "sorted", "reversed", "nearlySorted")
+     * @param n          input size
+     * @param ms         time in milliseconds for this single trial
+     * @param trial      trial number (1..TRIALS)
+     */
+    public void writeRow(String algorithm, String inputType, int n, double ms, int trial) {
+        out.printf("%s,%s,%d,%.6f,%d%n", algorithm, inputType, n, ms, trial);
+        out.flush();
     }
 
+    /**
+     * Close the CSV writer.
+     */
     public void close() {
-        try {
-            writer.close();
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to close CSV file", e);
-        }
+        out.close();
     }
 }

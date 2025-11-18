@@ -24,15 +24,17 @@ public class ExperimentRunner {
                 // Generate a base array for this (n, inputType)
                 int[] base = generateArray(n, inputType, random);
 
-                // Time each algorithm on this base array
-                double selectionAvg = averageTimeSelection(base);
-                double mergeAvg     = averageTimeMerge(base);
-                double quickAvg     = averageTimeQuick(base);
+                // Run each algorithm TRIALS times on this base array
+                for (int trial = 1; trial <= TRIALS; trial++) {
+                    double selectionMs = timeSelection(base);
+                    csv.writeRow("selection", inputType, n, selectionMs, trial);
 
-                // Write rows to CSV
-                csv.writeRow("selection", inputType, n, selectionAvg);
-                csv.writeRow("merge",     inputType, n, mergeAvg);
-                csv.writeRow("quick",     inputType, n, quickAvg);
+                    double mergeMs = timeMerge(base);
+                    csv.writeRow("merge", inputType, n, mergeMs, trial);
+
+                    double quickMs = timeQuick(base);
+                    csv.writeRow("quick", inputType, n, quickMs, trial);
+                }
             }
         }
 
@@ -99,54 +101,29 @@ public class ExperimentRunner {
         }
     }
 
-    private static double averageTimeSelection(int[] base) {
-        long totalNs = 0;
+    // ---- Single-trial timing helpers ----
 
-        for (int t = 0; t < TRIALS; t++) {
-            int[] arr = Arrays.copyOf(base, base.length);
-
-            long start = System.nanoTime();
-            SelectionSort.sort(arr);
-            long end = System.nanoTime();
-
-            totalNs += (end - start);
-        }
-
-        double avgNs = totalNs / (double) TRIALS;
-        return avgNs / 1_000_000.0; // convert to ms
+    private static double timeSelection(int[] base) {
+        int[] arr = Arrays.copyOf(base, base.length);
+        long start = System.nanoTime();
+        SelectionSort.sort(arr);
+        long end = System.nanoTime();
+        return (end - start) / 1_000_000.0; // ms
     }
 
-    private static double averageTimeMerge(int[] base) {
-        long totalNs = 0;
-
-        for (int t = 0; t < TRIALS; t++) {
-            int[] arr = Arrays.copyOf(base, base.length);
-
-            long start = System.nanoTime();
-            MergeSort.sort(arr);
-            long end = System.nanoTime();
-
-            totalNs += (end - start);
-        }
-
-        double avgNs = totalNs / (double) TRIALS;
-        return avgNs / 1_000_000.0;
+    private static double timeMerge(int[] base) {
+        int[] arr = Arrays.copyOf(base, base.length);
+        long start = System.nanoTime();
+        MergeSort.sort(arr);
+        long end = System.nanoTime();
+        return (end - start) / 1_000_000.0; // ms
     }
 
-    private static double averageTimeQuick(int[] base) {
-        long totalNs = 0;
-
-        for (int t = 0; t < TRIALS; t++) {
-            int[] arr = Arrays.copyOf(base, base.length);
-
-            long start = System.nanoTime();
-            QuickSort.sort(arr);
-            long end = System.nanoTime();
-
-            totalNs += (end - start);
-        }
-
-        double avgNs = totalNs / (double) TRIALS;
-        return avgNs / 1_000_000.0;
+    private static double timeQuick(int[] base) {
+        int[] arr = Arrays.copyOf(base, base.length);
+        long start = System.nanoTime();
+        QuickSort.sort(arr);
+        long end = System.nanoTime();
+        return (end - start) / 1_000_000.0; // ms
     }
 }
